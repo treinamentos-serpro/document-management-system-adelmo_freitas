@@ -1,32 +1,65 @@
-// Seed do servidor backend do Document Management System.
-//
-// Este arquivo é apenas um ponto de partida mínimo. Ao longo do workshop você
-// vai usar o Agent Mode do GitHub Copilot para construir as camadas:
-//   - routes/       (definição das rotas)
-//   - controllers/  (entrada HTTP e validação)
-//   - services/     (regras de negócio)
-//   - repositories/ (persistência: arquivos locais + metadados em memória)
-//
-// Restrição do projeto: uploads são gravados no filesystem local da aplicação
-// usando multer com diskStorage. Não utilize provedores externos.
-
 const express = require('express');
+const fs = require('node:fs');
+const path = require('node:path');
+const { randomUUID } = require('node:crypto');
+const multer = require('multer');
+const { createDocumentRepository } = require('./repositories/documentRepository');
+const { createDocumentService } = require('./services/documentService');
+const { createDocumentController } = require('./controllers/documentController');
+const { createDocumentRoutes } = require('./routes/documentRoutes');
+const { createErrorHandler } = require('./middleware/errorHandler');
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+const DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-app.use(express.json());
+function resolveMaxFileSize(configuredValue) {
+  if (configuredValue === undefined) {
+    return DEFAULT_MAX_FILE_SIZE;
+  }
 
-// Endpoint de verificação de saúde. As demais rotas (/upload, /documents,
-// /documents/:id/download) serão implementadas durante o Passo 2.
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
+  const value = Number(configuredValue);
+  if (!Number.isSafeInteger(value) || value < 1) {
+    throw new Error('MAX_FILE_SIZE_BYTES deve ser um inteiro positivo.');
+  }
+
+  return value;
+}
+
+function createApp(options = {}) {
+  const storageDir = options.storageDir || path.resolve(__dirname, '../storage');
+  const maxFileSize = resolveMaxFileSize(
+    options.maxFileSize ?? process.env.MAX_FILE_SIZE_BYTES,
+  );
+
+  fs.mkdirSync(storageDir, { recursive: true });
+
+  const repository = options.repository || createDocumentRepository(storageDir);
+  const service = createDocumentService(repository);
+  const controller = createDocumentController(service);
+  const upload = multer({
+    storage: multer.diskStorage({
+      destination: storageDir,
+      filename: (req, file, callback) => callback(null, randomUUID()),
+    }),
+    limits: { fileSize: maxFileSize, files: 1 },
+  });
+
+  const app = express();
+  app.use(express.json());
+  app.get('/health', (req, res) => res.json({ status: 'ok' }));
+  app.use(createDocumentRoutes({ controller, upload }));
+  app.use(createErrorHandler(multer));
+
+  return app;
+}
+
+const app = createApp();
 
 if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`DMS backend ouvindo na porta ${PORT}`);
   });
 }
 
+app.createApp = createApp;
 module.exports = app;
