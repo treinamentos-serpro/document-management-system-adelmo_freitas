@@ -1,6 +1,6 @@
 const express = require('express');
 
-function createDocumentRoutes({ controller, upload }) {
+function createDocumentsRoutes({ controller, upload }) {
   const router = express.Router();
 
   router.post('/upload', controller.requireUser, upload.single('file'), controller.upload);
@@ -10,4 +10,4 @@ function createDocumentRoutes({ controller, upload }) {
   return router;
 }
 
-module.exports = { createDocumentRoutes };
+module.exports = { createDocumentsRoutes };

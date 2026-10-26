@@ -1,6 +1,6 @@
 const { randomUUID } = require('node:crypto');
 
-function createDocumentService(repository) {
+function createDocumentsService(repository) {
   return {
     async registerUpload(file, owner) {
       const document = {
@@ -47,4 +47,4 @@ function createDocumentService(repository) {
   };
 }
 
-module.exports = { createDocumentService };
+module.exports = { createDocumentsService };

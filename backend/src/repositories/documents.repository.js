@@ -1,7 +1,7 @@
 const path = require('node:path');
 const fs = require('node:fs/promises');
 
-function createDocumentRepository(storageDir) {
+function createDocumentsRepository(storageDir) {
   const documents = new Map();
 
   return {
@@ -44,4 +44,4 @@ function createDocumentRepository(storageDir) {
   };
 }
 
-module.exports = { createDocumentRepository };
+module.exports = { createDocumentsRepository };

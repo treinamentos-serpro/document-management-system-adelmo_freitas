@@ -3,10 +3,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const multer = require('multer');
-const { createDocumentRepository } = require('./repositories/documentRepository');
-const { createDocumentService } = require('./services/documentService');
-const { createDocumentController } = require('./controllers/documentController');
-const { createDocumentRoutes } = require('./routes/documentRoutes');
+const { createDocumentsRepository } = require('./repositories/documents.repository');
+const { createDocumentsService } = require('./services/documents.service');
+const { createDocumentsController } = require('./controllers/documents.controller');
+const { createDocumentsRoutes } = require('./routes/documents.routes');
 const { createErrorHandler } = require('./middleware/errorHandler');
 
 const DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -32,9 +32,9 @@ function createApp(options = {}) {
 
   fs.mkdirSync(storageDir, { recursive: true });
 
-  const repository = options.repository || createDocumentRepository(storageDir);
-  const service = createDocumentService(repository);
-  const controller = createDocumentController(service);
+  const repository = options.repository || createDocumentsRepository(storageDir);
+  const service = createDocumentsService(repository);
+  const controller = createDocumentsController(service);
   const upload = multer({
     storage: multer.diskStorage({
       destination: storageDir,
@@ -46,7 +46,7 @@ function createApp(options = {}) {
   const app = express();
   app.use(express.json());
   app.get('/health', (req, res) => res.json({ status: 'ok' }));
-  app.use(createDocumentRoutes({ controller, upload }));
+  app.use(createDocumentsRoutes({ controller, upload }));
   app.use(createErrorHandler(multer));
 
   return app;

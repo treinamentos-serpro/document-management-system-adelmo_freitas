@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-function createDocumentController(service) {
+function createDocumentsController(service) {
   function requireUser(req, res, next) {
     const owner = req.get('X-User-Id');
     if (!owner || !owner.trim()) {
@@ -72,4 +72,4 @@ function createDocumentController(service) {
   };
 }
 
-module.exports = { createDocumentController };
+module.exports = { createDocumentsController };
