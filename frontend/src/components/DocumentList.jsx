@@ -1,3 +1,5 @@
+import DownloadButton from './DownloadButton.jsx';
+
 function formatFileSize(size) {
   if (size < 1024) return `${size} B`;
   if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
@@ -27,9 +29,11 @@ export default function DocumentList({ documents, loading, ownerId, downloadingI
               <td className="muted-cell">{formatFileSize(document.size)}</td>
               <td className="muted-cell">{formatDate(document.uploadedAt)}</td>
               <td className="action-cell">
-                <button className="button button-quiet" type="button" onClick={() => onDownload(document)} disabled={downloadingId === document.id}>
-                  {downloadingId === document.id ? 'Baixando...' : 'Baixar'}
-                </button>
+                <DownloadButton
+                  document={document}
+                  downloading={downloadingId === document.id}
+                  onDownload={onDownload}
+                />
               </td>
             </tr>
           ))}

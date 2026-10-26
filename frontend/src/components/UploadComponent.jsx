@@ -6,7 +6,7 @@ function formatFileSize(size) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export default function UploadForm({ disabled, uploading, onUpload }) {
+export default function UploadComponent({ disabled, uploading, onUpload }) {
   const [file, setFile] = useState(null);
 
   async function handleSubmit(event) {

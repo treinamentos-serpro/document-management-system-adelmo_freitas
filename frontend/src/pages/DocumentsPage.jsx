@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import DocumentList from '../components/DocumentList.jsx';
-import UploadForm from '../components/UploadForm.jsx';
+import UploadComponent from '../components/UploadComponent.jsx';
 import { downloadDocument, listDocuments, uploadDocument } from '../services/documentService.js';
 
 const USER_STORAGE_KEY = 'dms-user-id';
@@ -122,7 +122,7 @@ export default function DocumentsPage() {
           {notice && <div className="alert alert-success" role="status">{notice}</div>}
           <section className="upload-section" aria-labelledby="upload-title">
             <div className="section-heading"><div><span className="section-index">01</span><h2 id="upload-title">Adicionar documento</h2></div><span className="section-note">ENVIO LOCAL</span></div>
-            <UploadForm disabled={!ownerId} uploading={uploading} onUpload={handleUpload} />
+            <UploadComponent disabled={!ownerId} uploading={uploading} onUpload={handleUpload} />
             {!ownerId && <p className="field-note">Informe um usuário para habilitar o envio.</p>}
           </section>
           <section className="documents-section" aria-labelledby="list-title">
