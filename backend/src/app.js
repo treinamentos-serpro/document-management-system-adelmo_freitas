@@ -40,7 +40,12 @@ function createApp(options = {}) {
       destination: storageDir,
       filename: (req, file, callback) => callback(null, randomUUID()),
     }),
-    limits: { fileSize: maxFileSize, files: 1 },
+    limits: {
+      fileSize: maxFileSize,
+      files: 1,
+      fields: 0,
+      parts: 2,
+    },
   });
 
   const app = express();

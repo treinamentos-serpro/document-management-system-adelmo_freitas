@@ -1,15 +1,10 @@
 import { useEffect, useState } from 'react';
 import DocumentList from '../components/DocumentList.jsx';
 import UploadComponent from '../components/UploadComponent.jsx';
+import formatFileSize from '../formatFileSize.js';
 import { downloadDocument, listDocuments, uploadDocument } from '../services/documentService.js';
 
 const USER_STORAGE_KEY = 'dms-user-id';
-
-function formatFileSize(size) {
-  if (size < 1024) return `${size} B`;
-  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
-  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 export default function DocumentsPage() {
   const [ownerId, setOwnerId] = useState(() => localStorage.getItem(USER_STORAGE_KEY) || '');
@@ -32,9 +27,14 @@ export default function DocumentsPage() {
     setLoading(true);
     setError('');
     listDocuments(ownerId, controller.signal)
-      .then(setDocuments)
+      .then((result) => {
+        if (!controller.signal.aborted) setDocuments(result);
+      })
       .catch((requestError) => {
-        if (requestError.name !== 'AbortError') setError(requestError.message);
+        if (requestError.name !== 'AbortError') {
+          setDocuments([]);
+          setError(requestError.message);
+        }
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
@@ -50,6 +50,7 @@ export default function DocumentsPage() {
       return;
     }
     localStorage.setItem(USER_STORAGE_KEY, nextOwnerId);
+    if (nextOwnerId !== ownerId) setDocuments([]);
     setError('');
     setNotice('');
     if (nextOwnerId === ownerId) setRefreshToken((token) => token + 1);

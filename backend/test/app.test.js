@@ -4,6 +4,7 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 const app = require('../src/app');
+const { createDocumentsRepository } = require('../src/repositories/documents.repository');
 
 test('o app backend é exportado', () => {
   assert.ok(app, 'o app deve estar definido');
@@ -110,6 +111,43 @@ test('rejeita arquivo acima do limite configurado', async (t) => {
   assert.equal(response.status, 413);
   assert.equal((await response.json()).error.code, 'FILE_TOO_LARGE');
   assert.deepEqual(await fs.readdir(storageDir), []);
+});
+
+test('rejeita campos multipart extras e remove o arquivo parcial', async (t) => {
+  const { baseUrl, storageDir } = await createTestContext(t);
+  const body = makeUpload('documento.txt', 'conteudo');
+  body.append('extra', 'valor');
+
+  const response = await fetch(`${baseUrl}/upload`, {
+    method: 'POST',
+    headers: { 'X-User-Id': 'ana' },
+    body,
+  });
+
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).error.code, 'INVALID_UPLOAD');
+  assert.deepEqual(await fs.readdir(storageDir), []);
+});
+
+test('mantém nomes originais fora do caminho físico no upload', async (t) => {
+  const { baseUrl, storageDir } = await createTestContext(t);
+  const response = await fetch(`${baseUrl}/upload`, {
+    method: 'POST',
+    headers: { 'X-User-Id': 'ana' },
+    body: makeUpload('..\\privado\\relatorio.txt', 'conteudo'),
+  });
+
+  assert.equal(response.status, 201);
+  assert.equal((await response.json()).originalName, 'relatorio.txt');
+  const [storedFile] = await fs.readdir(storageDir);
+  assert.match(storedFile, /^[\da-f-]{36}$/i);
+});
+
+test('rejeita nomes físicos que poderiam escapar do diretório de storage', () => {
+  const repository = createDocumentsRepository('/tmp/dms-storage');
+
+  assert.throws(() => repository.getFilePath('../outside'), /Nome físico de arquivo inválido/);
+  assert.throws(() => repository.getFilePath('..\\outside'), /Nome físico de arquivo inválido/);
 });
 
 test('remove o arquivo quando não consegue registrar os metadados', async (t) => {
