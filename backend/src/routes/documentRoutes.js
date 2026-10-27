@@ -1,7 +1,6 @@
 const { randomUUID } = require('node:crypto');
 const multer = require('multer');
 const express = require('express');
-const path = require('node:path');
 
 function createDocumentRouter({ controller, storageDir }) {
   const router = express.Router();

@@ -21,8 +21,12 @@ function createApp({ storageDir = path.join(__dirname, '../storage') } = {}) {
       return next(error);
     }
 
-    const status = error.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
-    res.status(status).json({ error: 'Não foi possível processar o arquivo enviado.' });
+    const status = error.code === 'LIMIT_FILE_SIZE'
+      ? 413
+      : error.name === 'MulterError' || error.status
+        ? error.status || 400
+        : 500;
+    res.status(status).json({ error: 'Não foi possível processar a solicitação.' });
   });
 
   return app;
