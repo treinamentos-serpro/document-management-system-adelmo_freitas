@@ -12,7 +12,6 @@ function createDocument(file) {
     size: file.size,
     uploadedAt: new Date().toISOString(),
     owner: 'anonymous',
-    filePath: file.path,
   });
 
   return toPublicDocument(document);
