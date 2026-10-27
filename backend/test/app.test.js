@@ -63,3 +63,21 @@ test('retorna erros para upload sem arquivo e download inexistente', async (t) =
   const downloadResponse = await fetch(`${baseUrl}/documents/inexistente/download`);
   assert.equal(downloadResponse.status, 404);
 });
+
+test('limita uploads por cliente', async (t) => {
+  const baseUrl = await startTestServer(t);
+
+  for (let request = 0; request < 10; request += 1) {
+    const response = await fetch(`${baseUrl}/upload`, {
+      method: 'POST',
+      body: new FormData(),
+    });
+    assert.equal(response.status, 400);
+  }
+
+  const limitedResponse = await fetch(`${baseUrl}/upload`, {
+    method: 'POST',
+    body: new FormData(),
+  });
+  assert.equal(limitedResponse.status, 429);
+});
