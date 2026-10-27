@@ -7,7 +7,7 @@ function toPublicDocument(document) {
 
 function createDocument(file) {
   const document = documentRepository.save({
-    id: file.id,
+    id: file.filename,
     name: file.originalname,
     size: file.size,
     uploadedAt: new Date().toISOString(),
