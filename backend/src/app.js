@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('node:path');
+const { rateLimit } = require('express-rate-limit');
 const { createDocumentRepository } = require('./repositories/documentRepository');
 const { createDocumentService } = require('./services/documentService');
 const { createDocumentController } = require('./controllers/documentController');
@@ -15,6 +16,13 @@ function createApp({ storageDir = path.join(__dirname, '../storage') } = {}) {
   app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
   });
+  app.use('/upload', rateLimit({
+    windowMs: 60 * 1000,
+    limit: 10,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    message: { error: 'Limite de uploads atingido. Tente novamente mais tarde.' },
+  }));
   app.use(createDocumentRouter({ controller, storageDir }));
   app.use((error, req, res, next) => {
     if (res.headersSent) {
